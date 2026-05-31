@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>downloader.ly</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #00e5c8;
+      --purple: #8b2be2;
+      --mid: #6c6cff;
+      --white: #ffffff;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--teal) 0%, var(--mid) 50%, var(--purple) 100%);
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .hero {
+      width: 100%;
+      max-width: 480px;
+      padding: 3rem 1.5rem 2rem;
+      text-align: left;
+    }
+
+    .domain-name {
+      font-size: clamp(2.8rem, 12vw, 4.5rem);
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: -2px;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .tagline {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 0;
+    }
+
+    .tagline a {
+      color: var(--teal);
+      text-decoration: none;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem 1.5rem 1.5rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .card.active { display: block; }
+
+    .card h2 {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, var(--teal), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .field {
+      margin-bottom: 1.2rem;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--mid);
+      margin-bottom: 0.3rem;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: none;
+      border-bottom: 2px solid var(--mid);
+      padding: 0.5rem 0;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      background: transparent;
+      color: #222;
+      transition: border-color 0.2s;
+    }
+
+    .field textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-bottom-color: var(--purple);
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.8rem 2.2rem;
+      background: linear-gradient(90deg, var(--teal), var(--purple));
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .success-msg {
+      display: none;
+      text-align: center;
+      padding: 1.5rem;
+      color: #333;
+      font-size: 1rem;
+    }
+
+    .success-msg .check {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    @media (max-width: 500px) {
+      .hero { padding: 2rem 1rem 1rem; }
+      .card { border-radius: 12px; padding: 1.5rem 1rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="domain-name">downloader.ly</div>
+    <p class="tagline">Interested in this domain? <a onclick="showForm()">Get in touch</a></p>
+  </div>
+
+  <div class="card" id="contactCard">
+    <h2>Contact</h2>
+    <form id="contactForm" onsubmit="submitForm(event)">
+      <div class="field">
+        <label>Your email</label>
+        <input type="email" id="emailInput" required placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Domain</label>
+        <input type="text" value="downloader.ly" readonly>
+      </div>
+      <div class="field">
+        <label>Message</label>
+        <textarea id="msgInput" placeholder="Write your message here..."></textarea>
+      </div>
+      <button type="submit" class="btn">Submit</button>
+    </form>
+    <div class="success-msg" id="successMsg">
+      <div class="check">✅</div>
+      <strong>Message sent!</strong><br>We'll be in touch soon.
+    </div>
+  </div>
+
+  <script>
+    function showForm() {
+      document.getElementById('contactCard').classList.add('active');
+      document.getElementById('contactCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function submitForm(e) {
+      e.preventDefault();
+      const email = document.getElementById('emailInput').value;
+      const message = document.getElementById('msgInput').value;
+
+      // Send via mailto (opens email client) — works without a backend
+      const subject = encodeURIComponent('Domain Inquiry: downloader.ly');
+      const body = encodeURIComponent(
+        'From: ' + email + '\nDomain: downloader.ly\n\nMessage:\n' + message
+      );
+      window.location.href = 'mailto:offcetech@gmail.com?subject=' + subject + '&body=' + body;
+
+      // Show success
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
