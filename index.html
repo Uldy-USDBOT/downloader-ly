@@ -1,210 +1,1662 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>downloader.ly</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;700;900&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>lingsOS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
 
-    :root {
-      --teal: #00e5c8;
-      --purple: #8b2be2;
-      --mid: #6c6cff;
-      --white: #ffffff;
-    }
+        body {
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-    body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, var(--teal) 0%, var(--mid) 50%, var(--purple) 100%);
-      font-family: 'Space Grotesk', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
+        .phone-frame {
+            width: 100%;
+            max-width: 414px;
+            height: 100vh;
+            max-height: 896px;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0;
+        }
 
-    .hero {
-      width: 100%;
-      max-width: 480px;
-      padding: 3rem 1.5rem 2rem;
-      text-align: left;
-    }
+        /* Status Bar */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
 
-    .domain-name {
-      font-size: clamp(2.8rem, 12vw, 4.5rem);
-      font-weight: 900;
-      color: var(--white);
-      letter-spacing: -2px;
-      line-height: 1;
-      margin-bottom: 1rem;
-    }
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    .tagline {
-      font-size: 1rem;
-      color: rgba(255,255,255,0.75);
-      margin-bottom: 0;
-    }
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
 
-    .tagline a {
-      color: var(--teal);
-      text-decoration: none;
-      font-weight: 700;
-      cursor: pointer;
-    }
+        .signal-bars {
+            display: flex;
+            gap: 2px;
+            align-items: flex-end;
+        }
 
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 2rem 1.5rem 1.5rem;
-      width: 100%;
-      max-width: 480px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      display: none;
-    }
+        .signal-bar {
+            width: 3px;
+            background: #fff;
+            border-radius: 1px;
+        }
 
-    .card.active { display: block; }
+        .signal-bar:nth-child(1) { height: 4px; }
+        .signal-bar:nth-child(2) { height: 6px; }
+        .signal-bar:nth-child(3) { height: 8px; }
+        .signal-bar:nth-child(4) { height: 10px; }
 
-    .card h2 {
-      text-align: center;
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      background: linear-gradient(90deg, var(--teal), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+        .battery {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
 
-    .field {
-      margin-bottom: 1.2rem;
-    }
+        .battery-body {
+            width: 25px;
+            height: 12px;
+            border: 1.5px solid #fff;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
 
-    .field label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--mid);
-      margin-bottom: 0.3rem;
-    }
+        .battery-level {
+            width: 80%;
+            height: 100%;
+            background: #4cd964;
+            border-radius: 1px;
+        }
 
-    .field input,
-    .field textarea {
-      width: 100%;
-      border: none;
-      border-bottom: 2px solid var(--mid);
-      padding: 0.5rem 0;
-      font-size: 1rem;
-      font-family: inherit;
-      outline: none;
-      background: transparent;
-      color: #222;
-      transition: border-color 0.2s;
-    }
+        .battery-cap {
+            width: 2px;
+            height: 6px;
+            background: #fff;
+            border-radius: 0 1px 1px 0;
+        }
 
-    .field textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
+        /* Lock Screen */
+        .lock-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 80px;
+            z-index: 500;
+            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+        }
 
-    .field input:focus,
-    .field textarea:focus {
-      border-bottom-color: var(--purple);
-    }
+        .lock-screen.hidden {
+            transform: translateY(-100%);
+        }
 
-    .btn {
-      display: inline-block;
-      margin-top: 1rem;
-      padding: 0.8rem 2.2rem;
-      background: linear-gradient(90deg, var(--teal), var(--purple));
-      color: #fff;
-      font-family: inherit;
-      font-size: 0.9rem;
-      font-weight: 800;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: opacity 0.2s, transform 0.1s;
-    }
+        .lock-icon {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
 
-    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); }
+        .lock-time {
+            font-size: 80px;
+            font-weight: 200;
+            color: #fff;
+            letter-spacing: -2px;
+            line-height: 1;
+        }
 
-    .success-msg {
-      display: none;
-      text-align: center;
-      padding: 1.5rem;
-      color: #333;
-      font-size: 1rem;
-    }
+        .lock-date {
+            font-size: 20px;
+            color: #fff;
+            margin-top: 10px;
+            font-weight: 400;
+        }
 
-    .success-msg .check {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-    }
+        .lock-notifications {
+            margin-top: 30px;
+            width: 90%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
 
-    @media (max-width: 500px) {
-      .hero { padding: 2rem 1rem 1rem; }
-      .card { border-radius: 12px; padding: 1.5rem 1rem 1rem; }
-    }
-  </style>
+        .lock-notification {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 12px 16px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lock-notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .lock-notification-content {
+            flex: 1;
+        }
+
+        .lock-notification-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .lock-notification-text {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .swipe-up {
+            position: absolute;
+            bottom: 50px;
+            color: #fff;
+            font-size: 16px;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: #fff;
+            border-radius: 3px;
+            z-index: 1000;
+        }
+
+        /* Home Screen */
+        .home-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+            display: flex;
+            flex-direction: column;
+            padding-top: 50px;
+            padding-bottom: 100px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .home-screen::-webkit-scrollbar {
+            display: none;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px 10px;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .app-icon:active {
+            transform: scale(0.9);
+        }
+
+        .app-icon-visual {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .app-icon-label {
+            color: #fff;
+            font-size: 11px;
+            text-align: center;
+            max-width: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dock {
+            position: absolute;
+            bottom: 30px;
+            left: 10px;
+            right: 10px;
+            height: 90px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 100;
+        }
+
+        .dock .app-icon-visual {
+            width: 55px;
+            height: 55px;
+        }
+
+        /* App Windows */
+        .app-window {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #000;
+            z-index: 600;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-window.open {
+            transform: translateY(0);
+        }
+
+        .app-header {
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-bottom: 1px solid #333;
+        }
+
+        .app-header-title {
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .app-back {
+            position: absolute;
+            left: 15px;
+            color: #0a84ff;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        .app-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Phone App */
+        .phone-keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .keypad-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .keypad-btn:active {
+            background: #555;
+        }
+
+        .keypad-number {
+            font-size: 32px;
+            font-weight: 300;
+        }
+
+        .keypad-letters {
+            font-size: 10px;
+            color: #888;
+            margin-top: -2px;
+        }
+
+        .call-btn {
+            background: #4cd964 !important;
+        }
+
+        /* Messages App */
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .message-item {
+            background: #1c1c1e;
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .message-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .message-info {
+            flex: 1;
+        }
+
+        .message-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .message-preview {
+            color: #888;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .message-time {
+            color: #888;
+            font-size: 12px;
+        }
+
+        /* Camera App */
+        .camera-view {
+            flex: 1;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .camera-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+        }
+
+        .camera-controls {
+            height: 120px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 30px;
+        }
+
+        .shutter-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .shutter-btn:active {
+            background: #fff;
+        }
+
+        /* Music App */
+        .music-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 40px;
+        }
+
+        .album-art {
+            width: 280px;
+            height: 280px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 100px;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+            margin-bottom: 30px;
+        }
+
+        .music-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .music-title {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .music-artist {
+            color: #888;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 340px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            margin-bottom: 8px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 35%;
+            background: #fff;
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .progress-knob {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .progress-time {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 340px;
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
+        .music-controls {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .music-btn {
+            color: #fff;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
+        .music-btn.play {
+            font-size: 60px;
+        }
+
+        /* App Store */
+        .app-store-header {
+            padding: 10px 0 20px;
+        }
+
+        .app-store-title {
+            color: #fff;
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .app-store-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .app-card {
+            background: #1c1c1e;
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .app-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .app-card-info {
+            flex: 1;
+        }
+
+        .app-card-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .app-card-desc {
+            color: #888;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .app-card-btn {
+            background: #0a84ff;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .app-card-btn.installed {
+            background: #333;
+            color: #0a84ff;
+        }
+
+        /* Notification Center */
+        .notification-center {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            z-index: 900;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+            padding-top: 50px;
+            overflow-y: auto;
+        }
+
+        .notification-center.open {
+            transform: translateY(0);
+        }
+
+        .nc-header {
+            color: #fff;
+            font-size: 28px;
+            font-weight: 700;
+            padding: 20px;
+            padding-bottom: 10px;
+        }
+
+        .notification-group {
+            margin: 0 15px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .notification-group-header {
+            padding: 10px 15px;
+            color: #888;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .notification-item {
+            padding: 12px 15px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .notification-text {
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 2px;
+        }
+
+        .notification-time {
+            color: #666;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        /* Control Center */
+        .control-center {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            z-index: 900;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            padding: 50px 20px 20px;
+            overflow-y: auto;
+        }
+
+        .control-center.open {
+            transform: translateY(0);
+        }
+
+        .cc-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .cc-tile {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .cc-tile:active {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .cc-tile.active {
+            background: #0a84ff;
+        }
+
+        .cc-tile-icon {
+            font-size: 28px;
+        }
+
+        .cc-tile-label {
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .cc-slider {
+            background: rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .cc-slider-label {
+            color: #fff;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cc-slider-bar {
+            height: 36px;
+            background: #333;
+            border-radius: 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cc-slider-fill {
+            height: 100%;
+            width: 60%;
+            background: #fff;
+            border-radius: 18px;
+        }
+
+        /* Wallpaper */
+        .wallpaper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            z-index: -1;
+        }
+
+        .wallpaper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(102, 126, 234, 0.3) 0%, transparent 60%);
+        }
+    </style>
+<base target="_blank">
 </head>
 <body>
+    <div class="phone-frame">
+        <!-- Wallpaper -->
+        <div class="wallpaper"></div>
 
-  <div class="hero">
-    <div class="domain-name">downloader.ly</div>
-    <p class="tagline">Interested in this domain? <a onclick="showForm()">Get in touch</a></p>
-  </div>
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span id="status-time">9:41</span>
+            </div>
+            <div class="status-right">
+                <div class="signal-bars">
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                    <div class="signal-bar"></div>
+                </div>
+                <span>5G</span>
+                <div class="battery">
+                    <div class="battery-body">
+                        <div class="battery-level"></div>
+                    </div>
+                    <div class="battery-cap"></div>
+                </div>
+            </div>
+        </div>
 
-  <div class="card" id="contactCard">
-    <h2>Contact</h2>
-    <form id="contactForm" onsubmit="submitForm(event)">
-      <div class="field">
-        <label>Your email</label>
-        <input type="email" id="emailInput" required placeholder="you@example.com">
-      </div>
-      <div class="field">
-        <label>Domain</label>
-        <input type="text" value="downloader.ly" readonly>
-      </div>
-      <div class="field">
-        <label>Message</label>
-        <textarea id="msgInput" placeholder="Write your message here..."></textarea>
-      </div>
-      <button type="submit" class="btn">Submit</button>
-    </form>
-    <div class="success-msg" id="successMsg">
-      <div class="check">✅</div>
-      <strong>Message sent!</strong><br>We'll be in touch soon.
+        <!-- Lock Screen -->
+        <div class="lock-screen" id="lockScreen">
+            <div class="lock-icon">🔒</div>
+            <div class="lock-time" id="lockTime">9:41</div>
+            <div class="lock-date" id="lockDate">Monday, May 22</div>
+            <div class="lock-notifications">
+                <div class="lock-notification">
+                    <div class="lock-notification-icon" style="background: #ff3b30;">💬</div>
+                    <div class="lock-notification-content">
+                        <div class="lock-notification-title">Messages</div>
+                        <div class="lock-notification-text">Hey! Are you free tonight?</div>
+                    </div>
+                </div>
+                <div class="lock-notification">
+                    <div class="lock-notification-icon" style="background: #ff9500;">📧</div>
+                    <div class="lock-notification-content">
+                        <div class="lock-notification-title">Mail</div>
+                        <div class="lock-notification-text">New email from work</div>
+                    </div>
+                </div>
+            </div>
+            <div class="swipe-up">Swipe up to unlock</div>
+        </div>
+
+        <!-- Home Screen -->
+        <div class="home-screen" id="homeScreen">
+            <div class="app-grid">
+                <div class="app-icon" onclick="openApp('phone')">
+                    <div class="app-icon-visual" style="background: #4cd964;">📞</div>
+                    <div class="app-icon-label">Phone</div>
+                </div>
+                <div class="app-icon" onclick="openApp('messages')">
+                    <div class="app-icon-visual" style="background: #4cd964;">💬</div>
+                    <div class="app-icon-label">Messages</div>
+                </div>
+                <div class="app-icon" onclick="openApp('camera')">
+                    <div class="app-icon-visual" style="background: #8e8e93;">📷</div>
+                    <div class="app-icon-label">Camera</div>
+                </div>
+                <div class="app-icon" onclick="openApp('music')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #fa2d48, #ff375f);">🎵</div>
+                    <div class="app-icon-label">Music</div>
+                </div>
+                <div class="app-icon" onclick="openApp('appstore')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #0a84ff, #5e5ce6);">🛒</div>
+                    <div class="app-icon-label">App Store</div>
+                </div>
+                <div class="app-icon" onclick="openApp('photos')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #ff9500, #ffcc00);">🖼️</div>
+                    <div class="app-icon-label">Photos</div>
+                </div>
+                <div class="app-icon" onclick="openApp('settings')">
+                    <div class="app-icon-visual" style="background: #8e8e93;">⚙️</div>
+                    <div class="app-icon-label">Settings</div>
+                </div>
+                <div class="app-icon" onclick="openApp('calendar')">
+                    <div class="app-icon-visual" style="background: #fff; color: #ff3b30;">📅</div>
+                    <div class="app-icon-label">Calendar</div>
+                </div>
+                <div class="app-icon" onclick="openApp('weather')">
+                    <div class="app-icon-visual" style="background: #0a84ff;">🌤️</div>
+                    <div class="app-icon-label">Weather</div>
+                </div>
+                <div class="app-icon" onclick="openApp('maps')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #32ade6, #64d2ff);">🗺️</div>
+                    <div class="app-icon-label">Maps</div>
+                </div>
+                <div class="app-icon" onclick="openApp('notes')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #ffcc00, #ff9500);">📝</div>
+                    <div class="app-icon-label">Notes</div>
+                </div>
+                <div class="app-icon" onclick="openApp('clock')">
+                    <div class="app-icon-visual" style="background: #000; border: 1px solid #333;">⏰</div>
+                    <div class="app-icon-label">Clock</div>
+                </div>
+            </div>
+
+            <!-- Dock -->
+            <div class="dock">
+                <div class="app-icon" onclick="openApp('phone')">
+                    <div class="app-icon-visual" style="background: #4cd964;">📞</div>
+                </div>
+                <div class="app-icon" onclick="openApp('messages')">
+                    <div class="app-icon-visual" style="background: #4cd964;">💬</div>
+                </div>
+                <div class="app-icon" onclick="openApp('safari')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #0a84ff, #5e5ce6);">🌐</div>
+                </div>
+                <div class="app-icon" onclick="openApp('music')">
+                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #fa2d48, #ff375f);">🎵</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Center -->
+        <div class="notification-center" id="notificationCenter">
+            <div class="nc-header">Notifications</div>
+            <div class="notification-group">
+                <div class="notification-group-header">Now</div>
+                <div class="notification-item">
+                    <div class="notification-icon" style="background: #4cd964;">💬</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Sarah</div>
+                        <div class="notification-text">Hey! Are you free tonight? Let's grab dinner 🍕</div>
+                        <div class="notification-time">2m ago</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon" style="background: #ff3b30;">📧</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Work Email</div>
+                        <div class="notification-text">Meeting rescheduled to 3 PM tomorrow</div>
+                        <div class="notification-time">15m ago</div>
+                    </div>
+                </div>
+            </div>
+            <div class="notification-group">
+                <div class="notification-group-header">Earlier Today</div>
+                <div class="notification-item">
+                    <div class="notification-icon" style="background: #ff9500;">📱</div>
+                    <div class="notification-content">
+                        <div class="notification-title">App Store</div>
+                        <div class="notification-text">3 apps updated successfully</div>
+                        <div class="notification-time">2h ago</div>
+                    </div>
+                </div>
+                <div class="notification-item">
+                    <div class="notification-icon" style="background: #0a84ff;">🌤️</div>
+                    <div class="notification-content">
+                        <div class="notification-title">Weather</div>
+                        <div class="notification-text">Rain expected in the evening, bring an umbrella!</div>
+                        <div class="notification-time">3h ago</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Center -->
+        <div class="control-center" id="controlCenter">
+            <div class="cc-grid">
+                <div class="cc-tile active" id="wifiTile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">📶</div>
+                    <div class="cc-tile-label">Wi-Fi</div>
+                </div>
+                <div class="cc-tile" id="btTile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">🔵</div>
+                    <div class="cc-tile-label">Bluetooth</div>
+                </div>
+                <div class="cc-tile" id="airplaneTile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">✈️</div>
+                    <div class="cc-tile-label">Airplane</div>
+                </div>
+                <div class="cc-tile active" id="cellularTile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">📡</div>
+                    <div class="cc-tile-label">Cellular</div>
+                </div>
+            </div>
+            <div class="cc-slider">
+                <div class="cc-slider-label">🔆 Brightness</div>
+                <div class="cc-slider-bar">
+                    <div class="cc-slider-fill" style="width: 75%;"></div>
+                </div>
+            </div>
+            <div class="cc-slider">
+                <div class="cc-slider-label">🔊 Volume</div>
+                <div class="cc-slider-bar">
+                    <div class="cc-slider-fill" style="width: 60%;"></div>
+                </div>
+            </div>
+            <div class="cc-grid">
+                <div class="cc-tile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">🔦</div>
+                    <div class="cc-tile-label">Flashlight</div>
+                </div>
+                <div class="cc-tile active" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">⏰</div>
+                    <div class="cc-tile-label">Alarm</div>
+                </div>
+                <div class="cc-tile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">🔄</div>
+                    <div class="cc-tile-label">Rotation</div>
+                </div>
+                <div class="cc-tile" onclick="toggleTile(this)">
+                    <div class="cc-tile-icon">🌙</div>
+                    <div class="cc-tile-label">Focus</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Windows -->
+        <!-- Phone App -->
+        <div class="app-window" id="app-phone">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Phone</span>
+            </div>
+            <div class="app-content">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="color: #fff; font-size: 32px; letter-spacing: 4px; min-height: 40px;" id="phoneDisplay"></div>
+                </div>
+                <div class="phone-keypad">
+                    <div class="keypad-btn" onclick="dial('1')"><span class="keypad-number">1</span></div>
+                    <div class="keypad-btn" onclick="dial('2')"><span class="keypad-number">2</span><span class="keypad-letters">ABC</span></div>
+                    <div class="keypad-btn" onclick="dial('3')"><span class="keypad-number">3</span><span class="keypad-letters">DEF</span></div>
+                    <div class="keypad-btn" onclick="dial('4')"><span class="keypad-number">4</span><span class="keypad-letters">GHI</span></div>
+                    <div class="keypad-btn" onclick="dial('5')"><span class="keypad-number">5</span><span class="keypad-letters">JKL</span></div>
+                    <div class="keypad-btn" onclick="dial('6')"><span class="keypad-number">6</span><span class="keypad-letters">MNO</span></div>
+                    <div class="keypad-btn" onclick="dial('7')"><span class="keypad-number">7</span><span class="keypad-letters">PQRS</span></div>
+                    <div class="keypad-btn" onclick="dial('8')"><span class="keypad-number">8</span><span class="keypad-letters">TUV</span></div>
+                    <div class="keypad-btn" onclick="dial('9')"><span class="keypad-number">9</span><span class="keypad-letters">WXYZ</span></div>
+                    <div class="keypad-btn" onclick="dial('*')"><span class="keypad-number">*</span></div>
+                    <div class="keypad-btn" onclick="dial('0')"><span class="keypad-number">0</span></div>
+                    <div class="keypad-btn" onclick="dial('#')"><span class="keypad-number">#</span></div>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <div class="keypad-btn call-btn" style="width: 70px; height: 70px; margin: 0 auto;">
+                        <span style="font-size: 32px;">📞</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages App -->
+        <div class="app-window" id="app-messages">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Messages</span>
+            </div>
+            <div class="app-content" style="padding: 0;">
+                <div class="message-list">
+                    <div class="message-item">
+                        <div class="message-avatar">👩</div>
+                        <div class="message-info">
+                            <div class="message-name">Sarah</div>
+                            <div class="message-preview">Hey! Are you free tonight? 🍕</div>
+                        </div>
+                        <div class="message-time">2m</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">👨</div>
+                        <div class="message-info">
+                            <div class="message-name">Mike</div>
+                            <div class="message-preview">Meeting at 3 PM tomorrow</div>
+                        </div>
+                        <div class="message-time">1h</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">👩‍💼</div>
+                        <div class="message-info">
+                            <div class="message-name">Mom</div>
+                            <div class="message-preview">Don't forget to call grandma!</div>
+                        </div>
+                        <div class="message-time">3h</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">👨‍💻</div>
+                        <div class="message-info">
+                            <div class="message-name">Alex</div>
+                            <div class="message-preview">Code review is done ✅</div>
+                        </div>
+                        <div class="message-time">5h</div>
+                    </div>
+                    <div class="message-item">
+                        <div class="message-avatar">🏢</div>
+                        <div class="message-info">
+                            <div class="message-name">Work Group</div>
+                            <div class="message-preview">John: Great job everyone!</div>
+                        </div>
+                        <div class="message-time">1d</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera App -->
+        <div class="app-window" id="app-camera">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Camera</span>
+            </div>
+            <div class="camera-view">
+                <div class="camera-placeholder">📷</div>
+            </div>
+            <div class="camera-controls">
+                <div style="color: #fff; font-size: 24px;">🔄</div>
+                <div class="shutter-btn"></div>
+                <div style="color: #fff; font-size: 24px;">⚡</div>
+            </div>
+        </div>
+
+        <!-- Music App -->
+        <div class="app-window" id="app-music">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Music</span>
+            </div>
+            <div class="app-content">
+                <div class="music-player">
+                    <div class="album-art">🎵</div>
+                    <div class="music-info">
+                        <div class="music-title">Midnight Dreams</div>
+                        <div class="music-artist">Luna Eclipse</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill">
+                            <div class="progress-knob"></div>
+                        </div>
+                    </div>
+                    <div class="progress-time">
+                        <span>1:24</span>
+                        <span>3:45</span>
+                    </div>
+                    <div class="music-controls">
+                        <span class="music-btn">⏮</span>
+                        <span class="music-btn play" id="playBtn" onclick="togglePlay()">▶</span>
+                        <span class="music-btn">⏭</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Store -->
+        <div class="app-window" id="app-appstore">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">App Store</span>
+            </div>
+            <div class="app-content">
+                <div class="app-store-header">
+                    <div class="app-store-title">Apps</div>
+                </div>
+                <div class="app-store-section">
+                    <div class="section-title">Featured</div>
+                    <div class="app-card">
+                        <div class="app-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">🎨</div>
+                        <div class="app-card-info">
+                            <div class="app-card-name">ProCreate</div>
+                            <div class="app-card-desc">Professional drawing tools</div>
+                        </div>
+                        <button class="app-card-btn">GET</button>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">📸</div>
+                        <div class="app-card-info">
+                            <div class="app-card-name">PhotoEdit</div>
+                            <div class="app-card-desc">Advanced photo editor</div>
+                        </div>
+                        <button class="app-card-btn">GET</button>
+                    </div>
+                </div>
+                <div class="app-store-section">
+                    <div class="section-title">Top Charts</div>
+                    <div class="app-card">
+                        <div class="app-card-icon" style="background: #4cd964;">💬</div>
+                        <div class="app-card-info">
+                            <div class="app-card-name">ChatApp</div>
+                            <div class="app-card-desc">#1 in Social Networking</div>
+                        </div>
+                        <button class="app-card-btn installed">OPEN</button>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-card-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">🎮</div>
+                        <div class="app-card-info">
+                            <div class="app-card-name">GameZone</div>
+                            <div class="app-card-desc">#1 in Games</div>
+                        </div>
+                        <button class="app-card-btn">GET</button>
+                    </div>
+                    <div class="app-card">
+                        <div class="app-card-icon" style="background: #0a84ff;">📚</div>
+                        <div class="app-card-info">
+                            <div class="app-card-name">ReadNow</div>
+                            <div class="app-card-desc">#2 in Books</div>
+                        </div>
+                        <button class="app-card-btn">GET</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Apps (placeholder) -->
+        <div class="app-window" id="app-photos">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Photos</span>
+            </div>
+            <div class="app-content" style="display: flex; align-items: center; justify-content: center;">
+                <div style="color: #888; font-size: 60px;">🖼️<br><span style="font-size: 16px;">No Photos Yet</span></div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-settings">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Settings</span>
+            </div>
+            <div class="app-content">
+                <div style="background: #1c1c1e; border-radius: 12px; overflow: hidden;">
+                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #fff;">Airplane Mode</span>
+                        <div style="width: 50px; height: 30px; background: #333; border-radius: 15px; position: relative;">
+                            <div style="width: 26px; height: 26px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px;"></div>
+                        </div>
+                    </div>
+                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #fff;">Wi-Fi</span>
+                        <span style="color: #888;">lingsNetwork 5G ></span>
+                    </div>
+                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #fff;">Bluetooth</span>
+                        <span style="color: #888;">On ></span>
+                    </div>
+                    <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #fff;">Cellular</span>
+                        <span style="color: #888;">5G ></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-calendar">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Calendar</span>
+            </div>
+            <div class="app-content">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="color: #ff3b30; font-size: 14px; font-weight: 600;">MAY 2026</div>
+                    <div style="color: #fff; font-size: 48px; font-weight: 300;">22</div>
+                    <div style="color: #888; font-size: 18px;">Friday</div>
+                </div>
+                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px;">
+                    <div style="color: #fff; font-size: 16px; margin-bottom: 8px;">Today's Events</div>
+                    <div style="display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #333;">
+                        <div style="width: 4px; height: 40px; background: #0a84ff; border-radius: 2px;"></div>
+                        <div>
+                            <div style="color: #fff; font-size: 14px;">Team Meeting</div>
+                            <div style="color: #888; font-size: 12px;">2:00 PM - 3:00 PM</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center; padding: 8px 0;">
+                        <div style="width: 4px; height: 40px; background: #4cd964; border-radius: 2px;"></div>
+                        <div>
+                            <div style="color: #fff; font-size: 14px;">Dinner with Sarah</div>
+                            <div style="color: #888; font-size: 12px;">7:00 PM - 9:00 PM</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-weather">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Weather</span>
+            </div>
+            <div class="app-content" style="text-align: center; padding-top: 40px;">
+                <div style="font-size: 80px; margin-bottom: 10px;">🌤️</div>
+                <div style="color: #fff; font-size: 64px; font-weight: 300;">72°</div>
+                <div style="color: #888; font-size: 18px;">Partly Cloudy</div>
+                <div style="color: #888; font-size: 14px; margin-top: 5px;">H:78° L:65°</div>
+                <div style="margin-top: 40px; display: flex; justify-content: space-around;">
+                    <div style="text-align: center;">
+                        <div style="color: #888; font-size: 12px;">Now</div>
+                        <div style="font-size: 24px;">🌤️</div>
+                        <div style="color: #fff; font-size: 16px;">72°</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888; font-size: 12px;">1PM</div>
+                        <div style="font-size: 24px;">☀️</div>
+                        <div style="color: #fff; font-size: 16px;">75°</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888; font-size: 12px;">2PM</div>
+                        <div style="font-size: 24px;">☀️</div>
+                        <div style="color: #fff; font-size: 16px;">77°</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888; font-size: 12px;">3PM</div>
+                        <div style="font-size: 24px;">⛅</div>
+                        <div style="color: #fff; font-size: 16px;">76°</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="color: #888; font-size: 12px;">4PM</div>
+                        <div style="font-size: 24px;">🌧️</div>
+                        <div style="color: #fff; font-size: 16px;">70°</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-maps">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Maps</span>
+            </div>
+            <div class="app-content" style="display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
+                <div style="text-align: center;">
+                    <div style="font-size: 80px; margin-bottom: 20px;">🗺️</div>
+                    <div style="color: #fff; font-size: 18px;">Map View</div>
+                    <div style="color: #888; font-size: 14px; margin-top: 10px;">Search for places nearby</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-notes">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Notes</span>
+            </div>
+            <div class="app-content">
+                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 8px;">Shopping List</div>
+                    <div style="color: #888; font-size: 14px;">- Milk<br>- Eggs<br>- Bread<br>- Coffee</div>
+                </div>
+                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px;">
+                    <div style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 8px;">Project Ideas</div>
+                    <div style="color: #888; font-size: 14px;">1. Build a mobile app<br>2. Learn SwiftUI<br>3. Design new icons</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-clock">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Clock</span>
+            </div>
+            <div class="app-content" style="text-align: center; padding-top: 40px;">
+                <div style="color: #fff; font-size: 72px; font-weight: 200;" id="clockTime">09:41:30</div>
+                <div style="color: #888; font-size: 18px; margin-top: 10px;">Local Time</div>
+                <div style="margin-top: 40px;">
+                    <div style="color: #fff; font-size: 16px; margin-bottom: 16px;">Alarms</div>
+                    <div style="background: #1c1c1e; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="color: #fff; font-size: 24px;">07:00</div>
+                            <div style="color: #888; font-size: 12px;">Every day</div>
+                        </div>
+                        <div style="width: 50px; height: 30px; background: #4cd964; border-radius: 15px; position: relative;">
+                            <div style="width: 26px; height: 26px; background: #fff; border-radius: 50%; position: absolute; top: 2px; right: 2px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-window" id="app-safari">
+            <div class="app-header">
+                <span class="app-back" onclick="closeApp()">← Back</span>
+                <span class="app-header-title">Safari</span>
+            </div>
+            <div class="app-content" style="display: flex; align-items: center; justify-content: center;">
+                <div style="text-align: center;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">🌐</div>
+                    <div style="background: #1c1c1e; border-radius: 24px; padding: 12px 24px; color: #888;">Search or enter address</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Home Indicator -->
+        <div class="home-indicator" id="homeIndicator"></div>
     </div>
-  </div>
 
-  <script>
-    function showForm() {
-      document.getElementById('contactCard').classList.add('active');
-      document.getElementById('contactCard').scrollIntoView({ behavior: 'smooth' });
-    }
+    <script>
+        // Time Update
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const timeStr = hours + ':' + minutes;
 
-    function submitForm(e) {
-      e.preventDefault();
-      const email = document.getElementById('emailInput').value;
-      const message = document.getElementById('msgInput').value;
+            document.getElementById('status-time').textContent = timeStr;
+            document.getElementById('lockTime').textContent = timeStr;
 
-      // Send via mailto (opens email client) — works without a backend
-      const subject = encodeURIComponent('Domain Inquiry: downloader.ly');
-      const body = encodeURIComponent(
-        'From: ' + email + '\nDomain: downloader.ly\n\nMessage:\n' + message
-      );
-      window.location.href = 'mailto:offcetech@gmail.com?subject=' + subject + '&body=' + body;
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('lockDate').textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
 
-      // Show success
-      document.getElementById('contactForm').style.display = 'none';
-      document.getElementById('successMsg').style.display = 'block';
-    }
-  </script>
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            const clockEl = document.getElementById('clockTime');
+            if (clockEl) clockEl.textContent = hours.toString().padStart(2, '0') + ':' + minutes + ':' + seconds;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
 
+        // Lock Screen Swipe
+        let lockScreen = document.getElementById('lockScreen');
+        let startY = 0;
+        let currentY = 0;
+
+        lockScreen.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+        }, {passive: true});
+
+        lockScreen.addEventListener('touchmove', function(e) {
+            currentY = e.touches[0].clientY;
+            let diff = currentY - startY;
+            if (diff < 0) {
+                lockScreen.style.transform = 'translateY(' + diff + 'px)';
+            }
+        }, {passive: true});
+
+        lockScreen.addEventListener('touchend', function(e) {
+            let diff = currentY - startY;
+            if (diff < -100) {
+                lockScreen.classList.add('hidden');
+                lockScreen.style.transform = '';
+            } else {
+                lockScreen.style.transform = '';
+            }
+        }, {passive: true});
+
+        // Mouse fallback for swipe
+        let isDragging = false;
+        lockScreen.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startY = e.clientY;
+        });
+
+        lockScreen.addEventListener('mousemove', function(e) {
+            if (!isDragging) return;
+            currentY = e.clientY;
+            let diff = currentY - startY;
+            if (diff < 0) {
+                lockScreen.style.transform = 'translateY(' + diff + 'px)';
+            }
+        });
+
+        lockScreen.addEventListener('mouseup', function(e) {
+            isDragging = false;
+            let diff = currentY - startY;
+            if (diff < -100) {
+                lockScreen.classList.add('hidden');
+                lockScreen.style.transform = '';
+            } else {
+                lockScreen.style.transform = '';
+            }
+        });
+
+        // Click swipe up text
+        document.querySelector('.swipe-up').addEventListener('click', function() {
+            lockScreen.classList.add('hidden');
+        });
+
+        // App Management
+        let currentApp = null;
+
+        function openApp(appName) {
+            let appWindow = document.getElementById('app-' + appName);
+            if (appWindow) {
+                appWindow.classList.add('open');
+                currentApp = appName;
+            }
+        }
+
+        function closeApp() {
+            if (currentApp) {
+                let appWindow = document.getElementById('app-' + currentApp);
+                if (appWindow) {
+                    appWindow.classList.remove('open');
+                }
+                currentApp = null;
+            }
+        }
+
+        // Phone dialer
+        let phoneNumber = '';
+        function dial(key) {
+            if (phoneNumber.length < 15) {
+                phoneNumber += key;
+                document.getElementById('phoneDisplay').textContent = phoneNumber;
+            }
+        }
+
+        // Music player
+        let isPlaying = false;
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+        }
+
+        // Control Center toggle
+        function toggleTile(tile) {
+            tile.classList.toggle('active');
+        }
+
+        // Notification Center - swipe down from status bar
+        let ncStartY = 0;
+        let statusBar = document.querySelector('.status-bar');
+
+        statusBar.addEventListener('touchstart', function(e) {
+            ncStartY = e.touches[0].clientY;
+        }, {passive: true});
+
+        statusBar.addEventListener('touchmove', function(e) {
+            let diff = e.touches[0].clientY - ncStartY;
+            if (diff > 50) {
+                document.getElementById('notificationCenter').classList.add('open');
+            }
+        }, {passive: true});
+
+        // Close notification center on tap
+        document.getElementById('notificationCenter').addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('nc-header')) {
+                this.classList.remove('open');
+            }
+        });
+
+        // Control Center - swipe up from bottom
+        let ccStartY = 0;
+        let homeIndicator = document.getElementById('homeIndicator');
+
+        homeIndicator.addEventListener('touchstart', function(e) {
+            ccStartY = e.touches[0].clientY;
+        }, {passive: true});
+
+        homeIndicator.addEventListener('touchmove', function(e) {
+            let diff = ccStartY - e.touches[0].clientY;
+            if (diff > 50) {
+                document.getElementById('controlCenter').classList.add('open');
+            }
+        }, {passive: true});
+
+        // Close control center on tap
+        document.getElementById('controlCenter').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('open');
+            }
+        });
+
+        // Mouse fallback for gestures
+        let ncMouseDown = false;
+        statusBar.addEventListener('mousedown', function(e) {
+            ncMouseDown = true;
+            ncStartY = e.clientY;
+        });
+
+        statusBar.addEventListener('mousemove', function(e) {
+            if (!ncMouseDown) return;
+            let diff = e.clientY - ncStartY;
+            if (diff > 50) {
+                document.getElementById('notificationCenter').classList.add('open');
+            }
+        });
+
+        statusBar.addEventListener('mouseup', function() {
+            ncMouseDown = false;
+        });
+
+        let ccMouseDown = false;
+        homeIndicator.addEventListener('mousedown', function(e) {
+            ccMouseDown = true;
+            ccStartY = e.clientY;
+        });
+
+        homeIndicator.addEventListener('mousemove', function(e) {
+            if (!ccMouseDown) return;
+            let diff = ccStartY - e.clientY;
+            if (diff > 50) {
+                document.getElementById('controlCenter').classList.add('open');
+            }
+        });
+
+        homeIndicator.addEventListener('mouseup', function() {
+            ccMouseDown = false;
+        });
+
+        // Click on status bar to open notification center
+        statusBar.addEventListener('click', function() {
+            document.getElementById('notificationCenter').classList.add('open');
+        });
+
+        // Click on home indicator to open control center
+        homeIndicator.addEventListener('click', function() {
+            document.getElementById('controlCenter').classList.add('open');
+        });
+    </script>
 </body>
 </html>
