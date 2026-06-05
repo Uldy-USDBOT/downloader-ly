@@ -1,1662 +1,795 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>lingsOS</title>
+    <title>DOWNLOADER.LY - For Sale</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: #000;
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: 'Courier New', 'Monaco', monospace;
             overflow: hidden;
-            height: 100vh;
             width: 100vw;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .phone-frame {
-            width: 100%;
-            max-width: 414px;
             height: 100vh;
-            max-height: 896px;
-            background: #000;
             position: relative;
-            overflow: hidden;
-            border-radius: 0;
         }
 
-        /* Status Bar */
-        .status-bar {
-            position: absolute;
+        #canvas {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 44px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            z-index: 1000;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .status-left {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-right {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .signal-bars {
-            display: flex;
-            gap: 2px;
-            align-items: flex-end;
-        }
-
-        .signal-bar {
-            width: 3px;
-            background: #fff;
-            border-radius: 1px;
-        }
-
-        .signal-bar:nth-child(1) { height: 4px; }
-        .signal-bar:nth-child(2) { height: 6px; }
-        .signal-bar:nth-child(3) { height: 8px; }
-        .signal-bar:nth-child(4) { height: 10px; }
-
-        .battery {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .battery-body {
-            width: 25px;
-            height: 12px;
-            border: 1.5px solid #fff;
-            border-radius: 3px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            padding: 1px;
-        }
-
-        .battery-level {
-            width: 80%;
+            width: 100%;
             height: 100%;
-            background: #4cd964;
-            border-radius: 1px;
+            z-index: 0;
         }
 
-        .battery-cap {
-            width: 2px;
-            height: 6px;
-            background: #fff;
-            border-radius: 0 1px 1px 0;
-        }
-
-        /* Lock Screen */
-        .lock-screen {
-            position: absolute;
+        .code-overlay {
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            padding-top: 80px;
-            z-index: 500;
-            transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            font-size: 8px;
+            line-height: 1.4;
+            opacity: 0.12;
+            overflow: hidden;
+            color: #00ff41;
+            white-space: pre;
+            padding: 5px;
         }
 
-        .lock-screen.hidden {
-            transform: translateY(-100%);
+        .line-numbers {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 25px;
+            height: 100%;
+            background: rgba(0, 20, 0, 0.5);
+            border-right: 1px solid #003300;
+            z-index: 5;
+            padding-top: 5px;
+            text-align: right;
+            padding-right: 5px;
+            font-size: 8px;
+            color: #004400;
+            pointer-events: none;
         }
 
-        .lock-icon {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        .lock-time {
-            font-size: 80px;
-            font-weight: 200;
-            color: #fff;
-            letter-spacing: -2px;
-            line-height: 1;
-        }
-
-        .lock-date {
-            font-size: 20px;
-            color: #fff;
-            margin-top: 10px;
-            font-weight: 400;
-        }
-
-        .lock-notifications {
-            margin-top: 30px;
-            width: 90%;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .lock-notification {
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            padding: 12px 16px;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .lock-notification-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .lock-notification-content {
-            flex: 1;
-        }
-
-        .lock-notification-title {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .lock-notification-text {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .swipe-up {
-            position: absolute;
-            bottom: 50px;
-            color: #fff;
-            font-size: 16px;
-            opacity: 0.8;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; transform: translateY(0); }
-            50% { opacity: 1; transform: translateY(-5px); }
-        }
-
-        .home-indicator {
-            position: absolute;
-            bottom: 8px;
+        .instruction {
+            position: fixed;
+            top: 8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 134px;
-            height: 5px;
-            background: #fff;
-            border-radius: 3px;
-            z-index: 1000;
-        }
-
-        /* Home Screen */
-        .home-screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
-            display: flex;
-            flex-direction: column;
-            padding-top: 50px;
-            padding-bottom: 100px;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
-
-        .home-screen::-webkit-scrollbar {
-            display: none;
-        }
-
-        .app-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px 10px;
-            padding: 20px;
-            padding-bottom: 100px;
-        }
-
-        .app-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .app-icon:active {
-            transform: scale(0.9);
-        }
-
-        .app-icon-visual {
-            width: 60px;
-            height: 60px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        .app-icon-label {
-            color: #fff;
-            font-size: 11px;
+            z-index: 10;
             text-align: center;
-            max-width: 70px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-size: 9px;
+            color: #00ff41;
+            background: rgba(0, 20, 0, 0.8);
+            border: 1px solid #00ff41;
+            padding: 5px 10px;
+            letter-spacing: 1px;
             white-space: nowrap;
         }
 
-        .dock {
-            position: absolute;
-            bottom: 30px;
-            left: 10px;
-            right: 10px;
-            height: 90px;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(25px);
-            border-radius: 30px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 0 10px;
-            z-index: 100;
-        }
-
-        .dock .app-icon-visual {
-            width: 55px;
-            height: 55px;
-        }
-
-        /* App Windows */
-        .app-window {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000;
-            z-index: 600;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .app-window.open {
-            transform: translateY(0);
-        }
-
-        .app-header {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border-bottom: 1px solid #333;
-        }
-
-        .app-header-title {
-            color: #fff;
-            font-size: 17px;
-            font-weight: 600;
-        }
-
-        .app-back {
-            position: absolute;
-            left: 15px;
-            color: #0a84ff;
-            font-size: 17px;
-            cursor: pointer;
-        }
-
-        .app-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        /* Phone App */
-        .phone-keypad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            max-width: 300px;
-            margin: 0 auto;
-        }
-
-        .keypad-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.1s;
-        }
-
-        .keypad-btn:active {
-            background: #555;
-        }
-
-        .keypad-number {
-            font-size: 32px;
-            font-weight: 300;
-        }
-
-        .keypad-letters {
-            font-size: 10px;
+        .instruction::before {
+            content: '// ';
             color: #888;
-            margin-top: -2px;
         }
 
-        .call-btn {
-            background: #4cd964 !important;
-        }
-
-        /* Messages App */
-        .message-list {
+        .controls {
+            position: fixed;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
             display: flex;
-            flex-direction: column;
-            gap: 1px;
+            gap: 5px;
+            background: rgba(0, 10, 0, 0.9);
+            border: 1px solid #00ff41;
+            padding: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 95vw;
         }
 
-        .message-item {
-            background: #1c1c1e;
-            padding: 12px 16px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
+        .mode-btn {
+            background: #001100;
+            border: 1px solid #00ff41;
+            color: #00ff41;
+            padding: 5px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 9px;
             cursor: pointer;
-        }
-
-        .message-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
-
-        .message-info {
-            flex: 1;
-        }
-
-        .message-name {
-            color: #fff;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .message-preview {
-            color: #888;
-            font-size: 14px;
-            margin-top: 2px;
-        }
-
-        .message-time {
-            color: #888;
-            font-size: 12px;
-        }
-
-        /* Camera App */
-        .camera-view {
-            flex: 1;
-            background: #111;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
         }
 
-        .camera-placeholder {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
+        .mode-btn::before {
+            content: '> ';
+            color: #ff6b35;
         }
 
-        .camera-controls {
-            height: 120px;
-            background: #000;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            padding: 0 30px;
+        .mode-btn:hover {
+            background: #002200;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
         }
 
-        .shutter-btn {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 4px solid #fff;
-            background: transparent;
-            cursor: pointer;
+        .mode-btn.active {
+            background: #003300;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.7);
+            border-color: #fff;
         }
 
-        .shutter-btn:active {
-            background: #fff;
+        .mode-btn.active::after {
+            content: ' [*]';
+            color: #ff6b35;
+            font-size: 8px;
         }
 
-        /* Music App */
-        .music-player {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 40px;
-        }
-
-        .album-art {
-            width: 280px;
-            height: 280px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 100px;
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
-            margin-bottom: 30px;
-        }
-
-        .music-info {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .music-title {
-            color: #fff;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-        .music-artist {
-            color: #888;
-            font-size: 16px;
-            margin-top: 5px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            max-width: 340px;
-            height: 4px;
-            background: #333;
-            border-radius: 2px;
-            margin-bottom: 8px;
-            position: relative;
-            cursor: pointer;
-        }
-
-        .progress-fill {
-            height: 100%;
-            width: 35%;
-            background: #fff;
-            border-radius: 2px;
-            position: relative;
-        }
-
-        .progress-knob {
-            position: absolute;
-            right: -6px;
+        .domain-banner {
+            position: fixed;
             top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: #fff;
-            border-radius: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            text-align: center;
+            background: rgba(0, 20, 0, 0.95);
+            border: 1px solid #00ff41;
+            padding: 15px 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), inset 0 0 20px rgba(0, 255, 65, 0.1);
+            width: 90%;
+            max-width: 320px;
         }
 
-        .progress-time {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 340px;
-            color: #888;
-            font-size: 12px;
-            margin-bottom: 20px;
-        }
-
-        .music-controls {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-        }
-
-        .music-btn {
-            color: #fff;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
-        .music-btn.play {
-            font-size: 60px;
-        }
-
-        /* App Store */
-        .app-store-header {
-            padding: 10px 0 20px;
-        }
-
-        .app-store-title {
-            color: #fff;
-            font-size: 32px;
-            font-weight: 700;
-        }
-
-        .app-store-section {
-            margin-bottom: 25px;
-        }
-
-        .section-title {
-            color: #fff;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-        }
-
-        .app-card {
-            background: #1c1c1e;
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .app-card-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-
-        .app-card-info {
-            flex: 1;
-        }
-
-        .app-card-name {
-            color: #fff;
-            font-size: 16px;
-            font-weight: 500;
-        }
-
-        .app-card-desc {
-            color: #888;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .app-card-btn {
-            background: #0a84ff;
-            color: #fff;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .app-card-btn.installed {
-            background: #333;
-            color: #0a84ff;
-        }
-
-        /* Notification Center */
-        .notification-center {
+        .domain-banner::before {
+            content: '<!-- SALE -->';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(20px);
-            z-index: 900;
-            transform: translateY(-100%);
-            transition: transform 0.3s ease;
-            padding-top: 50px;
-            overflow-y: auto;
+            top: -14px;
+            left: 10px;
+            color: #00ff41;
+            font-size: 8px;
+            background: #0a0a0a;
+            padding: 0 5px;
         }
 
-        .notification-center.open {
-            transform: translateY(0);
+        .domain-banner::after {
+            content: '<!-- END -->';
+            position: absolute;
+            bottom: -14px;
+            right: 10px;
+            color: #00ff41;
+            font-size: 8px;
+            background: #0a0a0a;
+            padding: 0 5px;
         }
 
-        .nc-header {
-            color: #fff;
-            font-size: 28px;
-            font-weight: 700;
-            padding: 20px;
-            padding-bottom: 10px;
+        .domain-name {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            animation: glitch 3s infinite;
         }
 
-        .notification-group {
-            margin: 0 15px 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            overflow: hidden;
+        .for-sale-text {
+            font-size: 12px;
+            color: #ff6b35;
+            text-shadow: 0 0 5px #ff6b35;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
         }
 
-        .notification-group-header {
-            padding: 10px 15px;
-            color: #888;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+        .contact-info {
+            border-top: 1px solid #003300;
+            padding-top: 10px;
+            margin-top: 10px;
         }
 
-        .notification-item {
-            padding: 12px 15px;
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .notification-item:last-child {
-            border-bottom: none;
-        }
-
-        .notification-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .notification-content {
-            flex: 1;
-        }
-
-        .notification-title {
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .notification-text {
-            color: #aaa;
-            font-size: 13px;
-            margin-top: 2px;
-        }
-
-        .notification-time {
+        .contact-label {
+            font-size: 9px;
             color: #666;
-            font-size: 11px;
-            margin-top: 4px;
+            margin-bottom: 8px;
         }
 
-        /* Control Center */
-        .control-center {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(20px);
-            z-index: 900;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            padding: 50px 20px 20px;
-            overflow-y: auto;
-        }
-
-        .control-center.open {
-            transform: translateY(0);
-        }
-
-        .cc-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .cc-tile {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
+        .whatsapp-btn {
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .cc-tile:active {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .cc-tile.active {
-            background: #0a84ff;
-        }
-
-        .cc-tile-icon {
-            font-size: 28px;
-        }
-
-        .cc-tile-label {
+            gap: 6px;
+            background: #25d366;
             color: #fff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
             font-size: 12px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(37, 211, 102, 0.4);
         }
 
-        .cc-slider {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
+        .whatsapp-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(37, 211, 102, 0.7);
         }
 
-        .cc-slider-label {
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .whatsapp-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #fff;
         }
 
-        .cc-slider-bar {
-            height: 36px;
-            background: #333;
-            border-radius: 18px;
-            position: relative;
-            overflow: hidden;
+        .current-mode {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 9px;
+            color: #00ff41;
+            background: rgba(0, 10, 0, 0.9);
+            border: 1px solid #00ff41;
+            padding: 4px 12px;
+            white-space: nowrap;
         }
 
-        .cc-slider-fill {
-            height: 100%;
-            width: 60%;
-            background: #fff;
-            border-radius: 18px;
+        .current-mode::before {
+            content: 'status: ';
+            color: #888;
         }
 
-        /* Wallpaper */
-        .wallpaper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-            z-index: -1;
+        .mode-label {
+            color: #ff6b35;
+            font-weight: bold;
         }
 
-        .wallpaper::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 30%, rgba(102, 126, 234, 0.3) 0%, transparent 60%);
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            height: 12px;
+            background: #00ff41;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-right: 3px;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes glitch {
+            0%, 90%, 100% { transform: translate(0); }
+            91% { transform: translate(-1px, 0.5px); }
+            92% { transform: translate(1px, -0.5px); }
+            93% { transform: translate(-0.5px, 1px); }
+            94% { transform: translate(0.5px, -1px); }
+            95% { transform: translate(0); }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .domain-name {
+                font-size: 18px;
+            }
+            .for-sale-text {
+                font-size: 10px;
+            }
+            .whatsapp-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            .mode-btn {
+                font-size: 8px;
+                padding: 4px 6px;
+            }
+            .controls {
+                padding: 4px;
+                gap: 3px;
+            }
         }
     </style>
 <base target="_blank">
 </head>
 <body>
-    <div class="phone-frame">
-        <!-- Wallpaper -->
-        <div class="wallpaper"></div>
+    <canvas id="canvas"></canvas>
 
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-left">
-                <span id="status-time">9:41</span>
-            </div>
-            <div class="status-right">
-                <div class="signal-bars">
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                    <div class="signal-bar"></div>
-                </div>
-                <span>5G</span>
-                <div class="battery">
-                    <div class="battery-body">
-                        <div class="battery-level"></div>
-                    </div>
-                    <div class="battery-cap"></div>
-                </div>
-            </div>
+    <div class="code-overlay" id="codeOverlay"></div>
+
+    <div class="line-numbers" id="lineNumbers"></div>
+
+    <div class="instruction">
+        <span class="cursor"></span>move mouse to change view
+    </div>
+
+    <div class="controls">
+        <button class="mode-btn active" data-mode="matrix">matrix()</button>
+        <button class="mode-btn" data-mode="energy">energy()</button>
+        <button class="mode-btn" data-mode="data">stream()</button>
+    </div>
+
+    <div class="domain-banner">
+        <div class="domain-name">DOWNLOADER.LY</div>
+        <div class="for-sale-text">[ DOMAIN FOR SALE ]</div>
+        <div class="contact-info">
+            <div class="contact-label">// Contact via WhatsApp</div>
+            <a href="https://wa.me/218917021437" class="whatsapp-btn" target="_blank">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.008-.57-.008-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+                Contact on WhatsApp
+            </a>
         </div>
+    </div>
 
-        <!-- Lock Screen -->
-        <div class="lock-screen" id="lockScreen">
-            <div class="lock-icon">🔒</div>
-            <div class="lock-time" id="lockTime">9:41</div>
-            <div class="lock-date" id="lockDate">Monday, May 22</div>
-            <div class="lock-notifications">
-                <div class="lock-notification">
-                    <div class="lock-notification-icon" style="background: #ff3b30;">💬</div>
-                    <div class="lock-notification-content">
-                        <div class="lock-notification-title">Messages</div>
-                        <div class="lock-notification-text">Hey! Are you free tonight?</div>
-                    </div>
-                </div>
-                <div class="lock-notification">
-                    <div class="lock-notification-icon" style="background: #ff9500;">📧</div>
-                    <div class="lock-notification-content">
-                        <div class="lock-notification-title">Mail</div>
-                        <div class="lock-notification-text">New email from work</div>
-                    </div>
-                </div>
-            </div>
-            <div class="swipe-up">Swipe up to unlock</div>
-        </div>
-
-        <!-- Home Screen -->
-        <div class="home-screen" id="homeScreen">
-            <div class="app-grid">
-                <div class="app-icon" onclick="openApp('phone')">
-                    <div class="app-icon-visual" style="background: #4cd964;">📞</div>
-                    <div class="app-icon-label">Phone</div>
-                </div>
-                <div class="app-icon" onclick="openApp('messages')">
-                    <div class="app-icon-visual" style="background: #4cd964;">💬</div>
-                    <div class="app-icon-label">Messages</div>
-                </div>
-                <div class="app-icon" onclick="openApp('camera')">
-                    <div class="app-icon-visual" style="background: #8e8e93;">📷</div>
-                    <div class="app-icon-label">Camera</div>
-                </div>
-                <div class="app-icon" onclick="openApp('music')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #fa2d48, #ff375f);">🎵</div>
-                    <div class="app-icon-label">Music</div>
-                </div>
-                <div class="app-icon" onclick="openApp('appstore')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #0a84ff, #5e5ce6);">🛒</div>
-                    <div class="app-icon-label">App Store</div>
-                </div>
-                <div class="app-icon" onclick="openApp('photos')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #ff9500, #ffcc00);">🖼️</div>
-                    <div class="app-icon-label">Photos</div>
-                </div>
-                <div class="app-icon" onclick="openApp('settings')">
-                    <div class="app-icon-visual" style="background: #8e8e93;">⚙️</div>
-                    <div class="app-icon-label">Settings</div>
-                </div>
-                <div class="app-icon" onclick="openApp('calendar')">
-                    <div class="app-icon-visual" style="background: #fff; color: #ff3b30;">📅</div>
-                    <div class="app-icon-label">Calendar</div>
-                </div>
-                <div class="app-icon" onclick="openApp('weather')">
-                    <div class="app-icon-visual" style="background: #0a84ff;">🌤️</div>
-                    <div class="app-icon-label">Weather</div>
-                </div>
-                <div class="app-icon" onclick="openApp('maps')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #32ade6, #64d2ff);">🗺️</div>
-                    <div class="app-icon-label">Maps</div>
-                </div>
-                <div class="app-icon" onclick="openApp('notes')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #ffcc00, #ff9500);">📝</div>
-                    <div class="app-icon-label">Notes</div>
-                </div>
-                <div class="app-icon" onclick="openApp('clock')">
-                    <div class="app-icon-visual" style="background: #000; border: 1px solid #333;">⏰</div>
-                    <div class="app-icon-label">Clock</div>
-                </div>
-            </div>
-
-            <!-- Dock -->
-            <div class="dock">
-                <div class="app-icon" onclick="openApp('phone')">
-                    <div class="app-icon-visual" style="background: #4cd964;">📞</div>
-                </div>
-                <div class="app-icon" onclick="openApp('messages')">
-                    <div class="app-icon-visual" style="background: #4cd964;">💬</div>
-                </div>
-                <div class="app-icon" onclick="openApp('safari')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #0a84ff, #5e5ce6);">🌐</div>
-                </div>
-                <div class="app-icon" onclick="openApp('music')">
-                    <div class="app-icon-visual" style="background: linear-gradient(135deg, #fa2d48, #ff375f);">🎵</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notification Center -->
-        <div class="notification-center" id="notificationCenter">
-            <div class="nc-header">Notifications</div>
-            <div class="notification-group">
-                <div class="notification-group-header">Now</div>
-                <div class="notification-item">
-                    <div class="notification-icon" style="background: #4cd964;">💬</div>
-                    <div class="notification-content">
-                        <div class="notification-title">Sarah</div>
-                        <div class="notification-text">Hey! Are you free tonight? Let's grab dinner 🍕</div>
-                        <div class="notification-time">2m ago</div>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon" style="background: #ff3b30;">📧</div>
-                    <div class="notification-content">
-                        <div class="notification-title">Work Email</div>
-                        <div class="notification-text">Meeting rescheduled to 3 PM tomorrow</div>
-                        <div class="notification-time">15m ago</div>
-                    </div>
-                </div>
-            </div>
-            <div class="notification-group">
-                <div class="notification-group-header">Earlier Today</div>
-                <div class="notification-item">
-                    <div class="notification-icon" style="background: #ff9500;">📱</div>
-                    <div class="notification-content">
-                        <div class="notification-title">App Store</div>
-                        <div class="notification-text">3 apps updated successfully</div>
-                        <div class="notification-time">2h ago</div>
-                    </div>
-                </div>
-                <div class="notification-item">
-                    <div class="notification-icon" style="background: #0a84ff;">🌤️</div>
-                    <div class="notification-content">
-                        <div class="notification-title">Weather</div>
-                        <div class="notification-text">Rain expected in the evening, bring an umbrella!</div>
-                        <div class="notification-time">3h ago</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Control Center -->
-        <div class="control-center" id="controlCenter">
-            <div class="cc-grid">
-                <div class="cc-tile active" id="wifiTile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">📶</div>
-                    <div class="cc-tile-label">Wi-Fi</div>
-                </div>
-                <div class="cc-tile" id="btTile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">🔵</div>
-                    <div class="cc-tile-label">Bluetooth</div>
-                </div>
-                <div class="cc-tile" id="airplaneTile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">✈️</div>
-                    <div class="cc-tile-label">Airplane</div>
-                </div>
-                <div class="cc-tile active" id="cellularTile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">📡</div>
-                    <div class="cc-tile-label">Cellular</div>
-                </div>
-            </div>
-            <div class="cc-slider">
-                <div class="cc-slider-label">🔆 Brightness</div>
-                <div class="cc-slider-bar">
-                    <div class="cc-slider-fill" style="width: 75%;"></div>
-                </div>
-            </div>
-            <div class="cc-slider">
-                <div class="cc-slider-label">🔊 Volume</div>
-                <div class="cc-slider-bar">
-                    <div class="cc-slider-fill" style="width: 60%;"></div>
-                </div>
-            </div>
-            <div class="cc-grid">
-                <div class="cc-tile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">🔦</div>
-                    <div class="cc-tile-label">Flashlight</div>
-                </div>
-                <div class="cc-tile active" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">⏰</div>
-                    <div class="cc-tile-label">Alarm</div>
-                </div>
-                <div class="cc-tile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">🔄</div>
-                    <div class="cc-tile-label">Rotation</div>
-                </div>
-                <div class="cc-tile" onclick="toggleTile(this)">
-                    <div class="cc-tile-icon">🌙</div>
-                    <div class="cc-tile-label">Focus</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- App Windows -->
-        <!-- Phone App -->
-        <div class="app-window" id="app-phone">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Phone</span>
-            </div>
-            <div class="app-content">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="color: #fff; font-size: 32px; letter-spacing: 4px; min-height: 40px;" id="phoneDisplay"></div>
-                </div>
-                <div class="phone-keypad">
-                    <div class="keypad-btn" onclick="dial('1')"><span class="keypad-number">1</span></div>
-                    <div class="keypad-btn" onclick="dial('2')"><span class="keypad-number">2</span><span class="keypad-letters">ABC</span></div>
-                    <div class="keypad-btn" onclick="dial('3')"><span class="keypad-number">3</span><span class="keypad-letters">DEF</span></div>
-                    <div class="keypad-btn" onclick="dial('4')"><span class="keypad-number">4</span><span class="keypad-letters">GHI</span></div>
-                    <div class="keypad-btn" onclick="dial('5')"><span class="keypad-number">5</span><span class="keypad-letters">JKL</span></div>
-                    <div class="keypad-btn" onclick="dial('6')"><span class="keypad-number">6</span><span class="keypad-letters">MNO</span></div>
-                    <div class="keypad-btn" onclick="dial('7')"><span class="keypad-number">7</span><span class="keypad-letters">PQRS</span></div>
-                    <div class="keypad-btn" onclick="dial('8')"><span class="keypad-number">8</span><span class="keypad-letters">TUV</span></div>
-                    <div class="keypad-btn" onclick="dial('9')"><span class="keypad-number">9</span><span class="keypad-letters">WXYZ</span></div>
-                    <div class="keypad-btn" onclick="dial('*')"><span class="keypad-number">*</span></div>
-                    <div class="keypad-btn" onclick="dial('0')"><span class="keypad-number">0</span></div>
-                    <div class="keypad-btn" onclick="dial('#')"><span class="keypad-number">#</span></div>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <div class="keypad-btn call-btn" style="width: 70px; height: 70px; margin: 0 auto;">
-                        <span style="font-size: 32px;">📞</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Messages App -->
-        <div class="app-window" id="app-messages">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Messages</span>
-            </div>
-            <div class="app-content" style="padding: 0;">
-                <div class="message-list">
-                    <div class="message-item">
-                        <div class="message-avatar">👩</div>
-                        <div class="message-info">
-                            <div class="message-name">Sarah</div>
-                            <div class="message-preview">Hey! Are you free tonight? 🍕</div>
-                        </div>
-                        <div class="message-time">2m</div>
-                    </div>
-                    <div class="message-item">
-                        <div class="message-avatar">👨</div>
-                        <div class="message-info">
-                            <div class="message-name">Mike</div>
-                            <div class="message-preview">Meeting at 3 PM tomorrow</div>
-                        </div>
-                        <div class="message-time">1h</div>
-                    </div>
-                    <div class="message-item">
-                        <div class="message-avatar">👩‍💼</div>
-                        <div class="message-info">
-                            <div class="message-name">Mom</div>
-                            <div class="message-preview">Don't forget to call grandma!</div>
-                        </div>
-                        <div class="message-time">3h</div>
-                    </div>
-                    <div class="message-item">
-                        <div class="message-avatar">👨‍💻</div>
-                        <div class="message-info">
-                            <div class="message-name">Alex</div>
-                            <div class="message-preview">Code review is done ✅</div>
-                        </div>
-                        <div class="message-time">5h</div>
-                    </div>
-                    <div class="message-item">
-                        <div class="message-avatar">🏢</div>
-                        <div class="message-info">
-                            <div class="message-name">Work Group</div>
-                            <div class="message-preview">John: Great job everyone!</div>
-                        </div>
-                        <div class="message-time">1d</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Camera App -->
-        <div class="app-window" id="app-camera">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Camera</span>
-            </div>
-            <div class="camera-view">
-                <div class="camera-placeholder">📷</div>
-            </div>
-            <div class="camera-controls">
-                <div style="color: #fff; font-size: 24px;">🔄</div>
-                <div class="shutter-btn"></div>
-                <div style="color: #fff; font-size: 24px;">⚡</div>
-            </div>
-        </div>
-
-        <!-- Music App -->
-        <div class="app-window" id="app-music">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Music</span>
-            </div>
-            <div class="app-content">
-                <div class="music-player">
-                    <div class="album-art">🎵</div>
-                    <div class="music-info">
-                        <div class="music-title">Midnight Dreams</div>
-                        <div class="music-artist">Luna Eclipse</div>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill">
-                            <div class="progress-knob"></div>
-                        </div>
-                    </div>
-                    <div class="progress-time">
-                        <span>1:24</span>
-                        <span>3:45</span>
-                    </div>
-                    <div class="music-controls">
-                        <span class="music-btn">⏮</span>
-                        <span class="music-btn play" id="playBtn" onclick="togglePlay()">▶</span>
-                        <span class="music-btn">⏭</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- App Store -->
-        <div class="app-window" id="app-appstore">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">App Store</span>
-            </div>
-            <div class="app-content">
-                <div class="app-store-header">
-                    <div class="app-store-title">Apps</div>
-                </div>
-                <div class="app-store-section">
-                    <div class="section-title">Featured</div>
-                    <div class="app-card">
-                        <div class="app-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">🎨</div>
-                        <div class="app-card-info">
-                            <div class="app-card-name">ProCreate</div>
-                            <div class="app-card-desc">Professional drawing tools</div>
-                        </div>
-                        <button class="app-card-btn">GET</button>
-                    </div>
-                    <div class="app-card">
-                        <div class="app-card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">📸</div>
-                        <div class="app-card-info">
-                            <div class="app-card-name">PhotoEdit</div>
-                            <div class="app-card-desc">Advanced photo editor</div>
-                        </div>
-                        <button class="app-card-btn">GET</button>
-                    </div>
-                </div>
-                <div class="app-store-section">
-                    <div class="section-title">Top Charts</div>
-                    <div class="app-card">
-                        <div class="app-card-icon" style="background: #4cd964;">💬</div>
-                        <div class="app-card-info">
-                            <div class="app-card-name">ChatApp</div>
-                            <div class="app-card-desc">#1 in Social Networking</div>
-                        </div>
-                        <button class="app-card-btn installed">OPEN</button>
-                    </div>
-                    <div class="app-card">
-                        <div class="app-card-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">🎮</div>
-                        <div class="app-card-info">
-                            <div class="app-card-name">GameZone</div>
-                            <div class="app-card-desc">#1 in Games</div>
-                        </div>
-                        <button class="app-card-btn">GET</button>
-                    </div>
-                    <div class="app-card">
-                        <div class="app-card-icon" style="background: #0a84ff;">📚</div>
-                        <div class="app-card-info">
-                            <div class="app-card-name">ReadNow</div>
-                            <div class="app-card-desc">#2 in Books</div>
-                        </div>
-                        <button class="app-card-btn">GET</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Other Apps (placeholder) -->
-        <div class="app-window" id="app-photos">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Photos</span>
-            </div>
-            <div class="app-content" style="display: flex; align-items: center; justify-content: center;">
-                <div style="color: #888; font-size: 60px;">🖼️<br><span style="font-size: 16px;">No Photos Yet</span></div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-settings">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Settings</span>
-            </div>
-            <div class="app-content">
-                <div style="background: #1c1c1e; border-radius: 12px; overflow: hidden;">
-                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #fff;">Airplane Mode</span>
-                        <div style="width: 50px; height: 30px; background: #333; border-radius: 15px; position: relative;">
-                            <div style="width: 26px; height: 26px; background: #fff; border-radius: 50%; position: absolute; top: 2px; left: 2px;"></div>
-                        </div>
-                    </div>
-                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #fff;">Wi-Fi</span>
-                        <span style="color: #888;">lingsNetwork 5G ></span>
-                    </div>
-                    <div style="padding: 14px 16px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #fff;">Bluetooth</span>
-                        <span style="color: #888;">On ></span>
-                    </div>
-                    <div style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="color: #fff;">Cellular</span>
-                        <span style="color: #888;">5G ></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-calendar">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Calendar</span>
-            </div>
-            <div class="app-content">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="color: #ff3b30; font-size: 14px; font-weight: 600;">MAY 2026</div>
-                    <div style="color: #fff; font-size: 48px; font-weight: 300;">22</div>
-                    <div style="color: #888; font-size: 18px;">Friday</div>
-                </div>
-                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px;">
-                    <div style="color: #fff; font-size: 16px; margin-bottom: 8px;">Today's Events</div>
-                    <div style="display: flex; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #333;">
-                        <div style="width: 4px; height: 40px; background: #0a84ff; border-radius: 2px;"></div>
-                        <div>
-                            <div style="color: #fff; font-size: 14px;">Team Meeting</div>
-                            <div style="color: #888; font-size: 12px;">2:00 PM - 3:00 PM</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 12px; align-items: center; padding: 8px 0;">
-                        <div style="width: 4px; height: 40px; background: #4cd964; border-radius: 2px;"></div>
-                        <div>
-                            <div style="color: #fff; font-size: 14px;">Dinner with Sarah</div>
-                            <div style="color: #888; font-size: 12px;">7:00 PM - 9:00 PM</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-weather">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Weather</span>
-            </div>
-            <div class="app-content" style="text-align: center; padding-top: 40px;">
-                <div style="font-size: 80px; margin-bottom: 10px;">🌤️</div>
-                <div style="color: #fff; font-size: 64px; font-weight: 300;">72°</div>
-                <div style="color: #888; font-size: 18px;">Partly Cloudy</div>
-                <div style="color: #888; font-size: 14px; margin-top: 5px;">H:78° L:65°</div>
-                <div style="margin-top: 40px; display: flex; justify-content: space-around;">
-                    <div style="text-align: center;">
-                        <div style="color: #888; font-size: 12px;">Now</div>
-                        <div style="font-size: 24px;">🌤️</div>
-                        <div style="color: #fff; font-size: 16px;">72°</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888; font-size: 12px;">1PM</div>
-                        <div style="font-size: 24px;">☀️</div>
-                        <div style="color: #fff; font-size: 16px;">75°</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888; font-size: 12px;">2PM</div>
-                        <div style="font-size: 24px;">☀️</div>
-                        <div style="color: #fff; font-size: 16px;">77°</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888; font-size: 12px;">3PM</div>
-                        <div style="font-size: 24px;">⛅</div>
-                        <div style="color: #fff; font-size: 16px;">76°</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="color: #888; font-size: 12px;">4PM</div>
-                        <div style="font-size: 24px;">🌧️</div>
-                        <div style="color: #fff; font-size: 16px;">70°</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-maps">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Maps</span>
-            </div>
-            <div class="app-content" style="display: flex; align-items: center; justify-content: center; background: #1a1a2e;">
-                <div style="text-align: center;">
-                    <div style="font-size: 80px; margin-bottom: 20px;">🗺️</div>
-                    <div style="color: #fff; font-size: 18px;">Map View</div>
-                    <div style="color: #888; font-size: 14px; margin-top: 10px;">Search for places nearby</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-notes">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Notes</span>
-            </div>
-            <div class="app-content">
-                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-                    <div style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 8px;">Shopping List</div>
-                    <div style="color: #888; font-size: 14px;">- Milk<br>- Eggs<br>- Bread<br>- Coffee</div>
-                </div>
-                <div style="background: #1c1c1e; border-radius: 12px; padding: 16px;">
-                    <div style="color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 8px;">Project Ideas</div>
-                    <div style="color: #888; font-size: 14px;">1. Build a mobile app<br>2. Learn SwiftUI<br>3. Design new icons</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-clock">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Clock</span>
-            </div>
-            <div class="app-content" style="text-align: center; padding-top: 40px;">
-                <div style="color: #fff; font-size: 72px; font-weight: 200;" id="clockTime">09:41:30</div>
-                <div style="color: #888; font-size: 18px; margin-top: 10px;">Local Time</div>
-                <div style="margin-top: 40px;">
-                    <div style="color: #fff; font-size: 16px; margin-bottom: 16px;">Alarms</div>
-                    <div style="background: #1c1c1e; border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="color: #fff; font-size: 24px;">07:00</div>
-                            <div style="color: #888; font-size: 12px;">Every day</div>
-                        </div>
-                        <div style="width: 50px; height: 30px; background: #4cd964; border-radius: 15px; position: relative;">
-                            <div style="width: 26px; height: 26px; background: #fff; border-radius: 50%; position: absolute; top: 2px; right: 2px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="app-window" id="app-safari">
-            <div class="app-header">
-                <span class="app-back" onclick="closeApp()">← Back</span>
-                <span class="app-header-title">Safari</span>
-            </div>
-            <div class="app-content" style="display: flex; align-items: center; justify-content: center;">
-                <div style="text-align: center;">
-                    <div style="font-size: 60px; margin-bottom: 20px;">🌐</div>
-                    <div style="background: #1c1c1e; border-radius: 24px; padding: 12px 24px; color: #888;">Search or enter address</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Home Indicator -->
-        <div class="home-indicator" id="homeIndicator"></div>
+    <div class="current-mode">
+        <span class="mode-label" id="modeLabel">matrix()</span>
     </div>
 
     <script>
-        // Time Update
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const timeStr = hours + ':' + minutes;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const modeLabel = document.getElementById('modeLabel');
+        const buttons = document.querySelectorAll('.mode-btn');
+        const codeOverlay = document.getElementById('codeOverlay');
+        const lineNumbers = document.getElementById('lineNumbers');
 
-            document.getElementById('status-time').textContent = timeStr;
-            document.getElementById('lockTime').textContent = timeStr;
+        let currentMode = 'matrix';
+        let mouseX = 0;
+        let mouseY = 0;
+        let time = 0;
 
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-            document.getElementById('lockDate').textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
+        const codeSnippets = [
+            'function init() {',
+            '  const config = {',
+            '    domain: "DOWNLOADER.LY",',
+            '    status: "FOR_SALE",',
+            '    contact: "wa.me"',
+            '  };',
+            '  return config;',
+            '}',
+            '',
+            'class DomainSale {',
+            '  constructor() {',
+            '    this.price = "NEGOTIABLE";',
+            '    this.currency = "USD";',
+            '  }',
+            '',
+            '  contact() {',
+            '    return this.whatsapp;',
+            '  }',
+            '}',
+            '',
+            'const download = new Downloader();',
+            'download.domain = "DOWNLOADER.LY";',
+            'download.available = true;',
+            '',
+            'if (interested) {',
+            '  contact("wa.me");',
+            '}',
+            '',
+            '// Premium domain',
+            '// Libya TLD',
+            '',
+            'module.exports = {',
+            '  domain: "DOWNLOADER.LY",',
+            '  forSale: true',
+            '};'
+        ];
 
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            const clockEl = document.getElementById('clockTime');
-            if (clockEl) clockEl.textContent = hours.toString().padStart(2, '0') + ':' + minutes + ':' + seconds;
+        function generateCodeOverlay() {
+            let html = '';
+            for (let i = 0; i < 150; i++) {
+                const snippet = codeSnippets[i % codeSnippets.length];
+                const indent = '  '.repeat(Math.floor(Math.random() * 4));
+                html += `${indent}${snippet}\n`;
+            }
+            codeOverlay.textContent = html;
         }
-        setInterval(updateTime, 1000);
-        updateTime();
+        generateCodeOverlay();
 
-        // Lock Screen Swipe
-        let lockScreen = document.getElementById('lockScreen');
-        let startY = 0;
-        let currentY = 0;
-
-        lockScreen.addEventListener('touchstart', function(e) {
-            startY = e.touches[0].clientY;
-        }, {passive: true});
-
-        lockScreen.addEventListener('touchmove', function(e) {
-            currentY = e.touches[0].clientY;
-            let diff = currentY - startY;
-            if (diff < 0) {
-                lockScreen.style.transform = 'translateY(' + diff + 'px)';
+        function generateLineNumbers() {
+            let html = '';
+            for (let i = 1; i <= 150; i++) {
+                html += `${i}\n`;
             }
-        }, {passive: true});
-
-        lockScreen.addEventListener('touchend', function(e) {
-            let diff = currentY - startY;
-            if (diff < -100) {
-                lockScreen.classList.add('hidden');
-                lockScreen.style.transform = '';
-            } else {
-                lockScreen.style.transform = '';
-            }
-        }, {passive: true});
-
-        // Mouse fallback for swipe
-        let isDragging = false;
-        lockScreen.addEventListener('mousedown', function(e) {
-            isDragging = true;
-            startY = e.clientY;
-        });
-
-        lockScreen.addEventListener('mousemove', function(e) {
-            if (!isDragging) return;
-            currentY = e.clientY;
-            let diff = currentY - startY;
-            if (diff < 0) {
-                lockScreen.style.transform = 'translateY(' + diff + 'px)';
-            }
-        });
-
-        lockScreen.addEventListener('mouseup', function(e) {
-            isDragging = false;
-            let diff = currentY - startY;
-            if (diff < -100) {
-                lockScreen.classList.add('hidden');
-                lockScreen.style.transform = '';
-            } else {
-                lockScreen.style.transform = '';
-            }
-        });
-
-        // Click swipe up text
-        document.querySelector('.swipe-up').addEventListener('click', function() {
-            lockScreen.classList.add('hidden');
-        });
-
-        // App Management
-        let currentApp = null;
-
-        function openApp(appName) {
-            let appWindow = document.getElementById('app-' + appName);
-            if (appWindow) {
-                appWindow.classList.add('open');
-                currentApp = appName;
-            }
+            lineNumbers.textContent = html;
         }
+        generateLineNumbers();
 
-        function closeApp() {
-            if (currentApp) {
-                let appWindow = document.getElementById('app-' + currentApp);
-                if (appWindow) {
-                    appWindow.classList.remove('open');
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
+            }
+        });
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+
+                const modeNames = {
+                    'matrix': 'matrix()',
+                    'energy': 'energy()',
+                    'data': 'stream()'
+                };
+                modeLabel.textContent = modeNames[currentMode];
+            });
+        });
+
+        class MatrixMode {
+            constructor() {
+                this.columns = [];
+                this.init();
+            }
+
+            init() {
+                const colCount = Math.floor(canvas.width / 15);
+                this.columns = [];
+                for (let i = 0; i < colCount; i++) {
+                    this.columns.push({
+                        x: i * 15,
+                        y: Math.random() * canvas.height,
+                        speed: 1 + Math.random() * 3,
+                        chars: [],
+                        length: 8 + Math.random() * 15
+                    });
                 }
-                currentApp = null;
+            }
+
+            getChar() {
+                const chars = '01<>/=;{}[]()#@$%&*';
+                return chars[Math.floor(Math.random() * chars.length)];
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const rotX = (mouseY - canvas.height / 2) * 0.001;
+                const rotY = (mouseX - canvas.width / 2) * 0.001;
+
+                this.columns.forEach((col, idx) => {
+                    col.y += col.speed;
+                    if (col.y > canvas.height + 50) {
+                        col.y = -50;
+                        col.speed = 1 + Math.random() * 3;
+                        col.length = 8 + Math.random() * 15;
+                    }
+
+                    for (let i = 0; i < col.length; i++) {
+                        const y = col.y - i * 15;
+                        if (y < -20 || y > canvas.height + 20) continue;
+
+                        const perspective = 1 + Math.sin(time * 0.001 + idx * 0.1) * 0.3;
+                        const offsetX = (mouseX - canvas.width / 2) * (y / canvas.height) * 0.1;
+
+                        const brightness = 1 - (i / col.length);
+                        const g = Math.floor(255 * brightness);
+
+                        ctx.fillStyle = `rgb(0, ${g}, ${Math.floor(65 * brightness)})`;
+                        ctx.font = `${10 * perspective}px monospace`;
+                        ctx.fillText(this.getChar(), col.x + offsetX, y);
+                    }
+                });
+
+                ctx.strokeStyle = 'rgba(0, 255, 65, 0.06)';
+                ctx.lineWidth = 1;
+                const gridSize = 30;
+                const offset = (time * 0.5) % gridSize;
+
+                for (let x = 0; x < canvas.width; x += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(x + (mouseX - canvas.width / 2) * 0.02, 0);
+                    ctx.lineTo(x - (mouseX - canvas.width / 2) * 0.02, canvas.height);
+                    ctx.stroke();
+                }
+
+                for (let y = offset; y < canvas.height; y += gridSize) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y + (mouseY - canvas.height / 2) * 0.02);
+                    ctx.lineTo(canvas.width, y - (mouseY - canvas.height / 2) * 0.02);
+                    ctx.stroke();
+                }
+
+                ctx.font = '8px monospace';
+                ctx.fillStyle = 'rgba(0, 255, 65, 0.08)';
+                for (let i = 0; i < 15; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const words = ['function', 'const', 'let', 'var', 'return', 'if', 'else', 'class'];
+                    ctx.fillText(words[Math.floor(Math.random() * words.length)], x, y);
+                }
             }
         }
 
-        // Phone dialer
-        let phoneNumber = '';
-        function dial(key) {
-            if (phoneNumber.length < 15) {
-                phoneNumber += key;
-                document.getElementById('phoneDisplay').textContent = phoneNumber;
+        class EnergyMode {
+            constructor() {
+                this.rings = [];
+                this.particles = [];
+                this.init();
+            }
+
+            init() {
+                for (let i = 0; i < 6; i++) {
+                    this.rings.push({
+                        radius: 40 + i * 45,
+                        speed: 0.02 + Math.random() * 0.03,
+                        phase: Math.random() * Math.PI * 2,
+                        amplitude: 15 + Math.random() * 25
+                    });
+                }
+
+                for (let i = 0; i < 60; i++) {
+                    this.particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        vx: (Math.random() - 0.5) * 2,
+                        vy: (Math.random() - 0.5) * 2,
+                        size: 1.5 + Math.random() * 3,
+                        hue: 100 + Math.random() * 60
+                    });
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.15)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const centerX = canvas.width / 2 + (mouseX - canvas.width / 2) * 0.1;
+                const centerY = canvas.height / 2 + (mouseY - canvas.height / 2) * 0.1;
+
+                this.rings.forEach((ring, idx) => {
+                    ring.phase += ring.speed;
+
+                    ctx.beginPath();
+                    ctx.strokeStyle = `hsla(${100 + idx * 15}, 100%, 50%, 0.5)`;
+                    ctx.lineWidth = 1.5;
+
+                    for (let angle = 0; angle < Math.PI * 2; angle += 0.05) {
+                        const r = ring.radius + Math.sin(angle * 3 + ring.phase) * ring.amplitude;
+                        const x = centerX + Math.cos(angle) * r;
+                        const y = centerY + Math.sin(angle) * r;
+
+                        if (angle === 0) {
+                            ctx.moveTo(x, y);
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    ctx.shadowColor = `hsl(${100 + idx * 15}, 100%, 50%)`;
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                });
+
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+
+                    const dx = mouseX - p.x;
+                    const dy = mouseY - p.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 200) {
+                        p.vx += dx * 0.001;
+                        p.vy += dy * 0.001;
+                    }
+
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.y < 0) p.y = canvas.height;
+                    if (p.y > canvas.height) p.y = 0;
+
+                    const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                    if (speed > 3) {
+                        p.vx = (p.vx / speed) * 3;
+                        p.vy = (p.vy / speed) * 3;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, 0.7)`;
+                    ctx.fill();
+
+                    ctx.shadowColor = `hsl(${p.hue}, 100%, 50%)`;
+                    ctx.shadowBlur = 8;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const dx = this.particles[i].x - this.particles[j].x;
+                        const dy = this.particles[i].y - this.particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 80) {
+                            ctx.beginPath();
+                            ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            ctx.strokeStyle = `rgba(0, 255, 65, ${0.15 * (1 - dist / 80)})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
             }
         }
 
-        // Music player
-        let isPlaying = false;
-        function togglePlay() {
-            isPlaying = !isPlaying;
-            document.getElementById('playBtn').textContent = isPlaying ? '⏸' : '▶';
+        class DataMode {
+            constructor() {
+                this.streams = [];
+                this.hexData = [];
+                this.init();
+            }
+
+            init() {
+                for (let i = 0; i < 15; i++) {
+                    this.streams.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        width: 80 + Math.random() * 150,
+                        speed: 1 + Math.random() * 2,
+                        direction: Math.random() > 0.5 ? 1 : -1,
+                        hue: 100 + Math.random() * 40
+                    });
+                }
+
+                for (let i = 0; i < 35; i++) {
+                    this.hexData.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        value: Math.floor(Math.random() * 65536).toString(16).toUpperCase().padStart(4, '0'),
+                        speed: 0.5 + Math.random() * 1,
+                        size: 10 + Math.random() * 6
+                    });
+                }
+            }
+
+            getRandomHex() {
+                return Math.floor(Math.random() * 65536).toString(16).toUpperCase().padStart(4, '0');
+            }
+
+            draw() {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const mouseInfluenceX = (mouseX - canvas.width / 2) * 0.02;
+                const mouseInfluenceY = (mouseY - canvas.height / 2) * 0.02;
+
+                this.streams.forEach((stream, idx) => {
+                    stream.x += stream.speed * stream.direction;
+
+                    if (stream.x > canvas.width + stream.width) {
+                        stream.x = -stream.width;
+                        stream.y = Math.random() * canvas.height;
+                    }
+                    if (stream.x < -stream.width) {
+                        stream.x = canvas.width + stream.width;
+                        stream.y = Math.random() * canvas.height;
+                    }
+
+                    const y = stream.y + mouseInfluenceY * (idx % 3);
+
+                    ctx.beginPath();
+                    ctx.moveTo(stream.x, y);
+                    ctx.lineTo(stream.x + stream.width, y);
+                    ctx.strokeStyle = `hsla(${100 + idx * 3}, 100%, 50%, 0.35)`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+
+                    ctx.shadowColor = `hsl(${100 + idx * 3}, 100%, 50%)`;
+                    ctx.shadowBlur = 10;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    const packetCount = 4;
+                    for (let i = 0; i < packetCount; i++) {
+                        const packetX = stream.x + (stream.width / packetCount) * i + (time * 2) % (stream.width / packetCount);
+                        const packetY = y + Math.sin(time * 0.05 + i + idx) * 8;
+
+                        ctx.fillStyle = `hsla(${100 + idx * 3}, 100%, 70%, 0.8)`;
+                        ctx.fillRect(packetX - 2, packetY - 2, 4, 4);
+                    }
+                });
+
+                this.hexData.forEach((data, idx) => {
+                    data.y -= data.speed;
+                    if (data.y < -50) {
+                        data.y = canvas.height + 50;
+                        data.x = Math.random() * canvas.width;
+                        data.value = this.getRandomHex();
+                    }
+
+                    const x = data.x + mouseInfluenceX * (idx % 5);
+                    const y = data.y + mouseInfluenceY * (idx % 5);
+
+                    ctx.font = `${data.size}px monospace`;
+                    ctx.fillStyle = `hsla(${100 + idx * 2}, 100%, 60%, 0.7)`;
+                    ctx.fillText(`0x${data.value}`, x, y);
+
+                    ctx.shadowColor = `hsl(${100 + idx * 2}, 100%, 50%)`;
+                    ctx.shadowBlur = 6;
+                    ctx.fillText(`0x${data.value}`, x, y);
+                    ctx.shadowBlur = 0;
+                });
+
+                const colWidth = canvas.width / 12;
+                for (let i = 0; i < 12; i++) {
+                    const x = i * colWidth + colWidth / 2;
+                    const barHeight = 30 + Math.sin(time * 0.03 + i) * 25 + Math.abs(mouseY - canvas.height / 2) * 0.08;
+
+                    ctx.fillStyle = `hsla(${100 + i * 3}, 100%, 50%, 0.25)`;
+                    ctx.fillRect(x - 1.5, canvas.height - barHeight, 3, barHeight);
+
+                    ctx.fillStyle = `hsla(${100 + i * 3}, 100%, 70%, 0.7)`;
+                    ctx.fillRect(x - 0.5, canvas.height - barHeight, 1, barHeight);
+                }
+
+                const scanY = (time * 2) % canvas.height;
+                ctx.strokeStyle = 'rgba(0, 255, 65, 0.25)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, scanY);
+                ctx.lineTo(canvas.width, scanY);
+                ctx.stroke();
+            }
         }
 
-        // Control Center toggle
-        function toggleTile(tile) {
-            tile.classList.toggle('active');
+        const matrixMode = new MatrixMode();
+        const energyMode = new EnergyMode();
+        const dataMode = new DataMode();
+
+        function animate() {
+            time++;
+
+            switch (currentMode) {
+                case 'matrix':
+                    matrixMode.draw();
+                    break;
+                case 'energy':
+                    energyMode.draw();
+                    break;
+                case 'data':
+                    dataMode.draw();
+                    break;
+            }
+
+            requestAnimationFrame(animate);
         }
 
-        // Notification Center - swipe down from status bar
-        let ncStartY = 0;
-        let statusBar = document.querySelector('.status-bar');
-
-        statusBar.addEventListener('touchstart', function(e) {
-            ncStartY = e.touches[0].clientY;
-        }, {passive: true});
-
-        statusBar.addEventListener('touchmove', function(e) {
-            let diff = e.touches[0].clientY - ncStartY;
-            if (diff > 50) {
-                document.getElementById('notificationCenter').classList.add('open');
-            }
-        }, {passive: true});
-
-        // Close notification center on tap
-        document.getElementById('notificationCenter').addEventListener('click', function(e) {
-            if (e.target === this || e.target.classList.contains('nc-header')) {
-                this.classList.remove('open');
-            }
-        });
-
-        // Control Center - swipe up from bottom
-        let ccStartY = 0;
-        let homeIndicator = document.getElementById('homeIndicator');
-
-        homeIndicator.addEventListener('touchstart', function(e) {
-            ccStartY = e.touches[0].clientY;
-        }, {passive: true});
-
-        homeIndicator.addEventListener('touchmove', function(e) {
-            let diff = ccStartY - e.touches[0].clientY;
-            if (diff > 50) {
-                document.getElementById('controlCenter').classList.add('open');
-            }
-        }, {passive: true});
-
-        // Close control center on tap
-        document.getElementById('controlCenter').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('open');
-            }
-        });
-
-        // Mouse fallback for gestures
-        let ncMouseDown = false;
-        statusBar.addEventListener('mousedown', function(e) {
-            ncMouseDown = true;
-            ncStartY = e.clientY;
-        });
-
-        statusBar.addEventListener('mousemove', function(e) {
-            if (!ncMouseDown) return;
-            let diff = e.clientY - ncStartY;
-            if (diff > 50) {
-                document.getElementById('notificationCenter').classList.add('open');
-            }
-        });
-
-        statusBar.addEventListener('mouseup', function() {
-            ncMouseDown = false;
-        });
-
-        let ccMouseDown = false;
-        homeIndicator.addEventListener('mousedown', function(e) {
-            ccMouseDown = true;
-            ccStartY = e.clientY;
-        });
-
-        homeIndicator.addEventListener('mousemove', function(e) {
-            if (!ccMouseDown) return;
-            let diff = ccStartY - e.clientY;
-            if (diff > 50) {
-                document.getElementById('controlCenter').classList.add('open');
-            }
-        });
-
-        homeIndicator.addEventListener('mouseup', function() {
-            ccMouseDown = false;
-        });
-
-        // Click on status bar to open notification center
-        statusBar.addEventListener('click', function() {
-            document.getElementById('notificationCenter').classList.add('open');
-        });
-
-        // Click on home indicator to open control center
-        homeIndicator.addEventListener('click', function() {
-            document.getElementById('controlCenter').classList.add('open');
-        });
+        animate();
     </script>
 </body>
 </html>
